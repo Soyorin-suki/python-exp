@@ -43,6 +43,57 @@ def get_testable_features(model_id: int) -> dict:
     }
 
 
+def random_spot_check(model_id: int) -> dict:
+    """Pick a random row from the cleaned training dataset, predict, and compare
+    with the true target value.
+
+    Returns dict with keys: true_value, predicted_value, error, error_pct,
+    and feature_values (dict of feature_name → value for the sampled row).
+    """
+    rng = np.random.default_rng()
+
+    # Load model info
+    info = get_testable_features(model_id)
+    all_features = info["numeric_features"] + info["categorical_features"]
+
+    # Load the cleaned training dataset
+    ds_dao = DatasetDAO()
+    ds_record = ds_dao.get_by_id(info["train_data_id"])
+    if ds_record is None:
+        raise ValueError("训练数据集不存在")
+
+    df = pd.read_csv(ds_record["metadata"]["file_path"])
+    target = "Price (in rupees)"
+
+    # Pick a random row that has a valid target
+    valid = df.dropna(subset=[target])
+    if len(valid) == 0:
+        raise ValueError("数据集中没有有效的目标值")
+    row = valid.sample(n=1, random_state=rng.integers(0, 2**31)).iloc[0]
+    true_value = float(row[target])
+
+    # Build feature dict from the row
+    feature_values = {}
+    for feat in all_features:
+        if feat in row.index:
+            feature_values[feat] = row[feat]
+
+    # Load model and predict
+    from ..services.predict_service import predict
+    predicted_value = predict(model_id, feature_values)
+
+    error = predicted_value - true_value
+    error_pct = (error / true_value * 100) if true_value != 0 else None
+
+    return {
+        "true_value": true_value,
+        "predicted_value": predicted_value,
+        "error": error,
+        "error_pct": error_pct,
+        "feature_values": feature_values,
+    }
+
+
 def run_prediction_test(
     model_id: int,
     feature_name: str,
@@ -168,6 +219,11 @@ def run_prediction_test(
         with torch.no_grad():
             pred_random = torch_model(torch.tensor(X_random, dtype=torch.float32)).numpy().flatten()
             pred_sorted = torch_model(torch.tensor(X_sorted, dtype=torch.float32)).numpy().flatten()
+        # Inverse standardization
+        y_mean = checkpoint.get("y_mean", 0.0)
+        y_std = checkpoint.get("y_std", 1.0)
+        pred_random = pred_random * y_std + y_mean
+        pred_sorted = pred_sorted * y_std + y_mean
 
     # 8. Plot
     fig, ax = plt.subplots(figsize=(10, 6))

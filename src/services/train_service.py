@@ -228,10 +228,19 @@ def train_pytorch(dataset_id: int, test_size: float = 0.2, random_state: int = 4
     # Build preprocessor and transform
     preprocessor, numeric_cols, categorical_cols = _build_preprocessor(df)
     X_processed = preprocessor.fit_transform(X)
-    y_vals = y.values.astype(np.float32).reshape(-1, 1)
+    y_raw = y.values.astype(np.float32).reshape(-1, 1)
+
+    # Standardize target — critical for neural network convergence.
+    # Without this, raw target values (e.g. 100–400 range) cause huge initial
+    # MSE loss and unstable gradients. Saved so prediction can inverse-transform.
+    y_mean = float(y_raw.mean())
+    y_std = float(y_raw.std())
+    if y_std == 0:
+        y_std = 1.0
+    y_scaled = (y_raw - y_mean) / y_std
 
     X_train, X_test, y_train, y_test = train_test_split(
-        X_processed, y_vals, test_size=test_size, random_state=random_state
+        X_processed, y_scaled, test_size=test_size, random_state=random_state
     )
 
     # Convert to tensors
@@ -253,7 +262,7 @@ def train_pytorch(dataset_id: int, test_size: float = 0.2, random_state: int = 4
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
-    # Train
+    # Train on standardized target
     model.train()
     for epoch in range(epochs):
         optimizer.zero_grad()
@@ -262,24 +271,28 @@ def train_pytorch(dataset_id: int, test_size: float = 0.2, random_state: int = 4
         loss.backward()
         optimizer.step()
 
-    # Evaluate
+    # Evaluate — inverse-transform predictions back to original scale
     model.eval()
     with torch.no_grad():
         y_pred_t = model(X_test_t)
-        test_loss = criterion(y_pred_t, y_test_t).item()
         y_pred_np = y_pred_t.numpy().flatten()
         y_test_np = y_test_t.numpy().flatten()
-        mse = mean_squared_error(y_test_np, y_pred_np)
+        # Inverse standardization
+        y_pred_orig = y_pred_np * y_std + y_mean
+        y_test_orig = y_test_np * y_std + y_mean
+        mse = mean_squared_error(y_test_orig, y_pred_orig)
         rmse = float(np.sqrt(mse))
-        r2 = r2_score(y_test_np, y_pred_np)
+        r2 = r2_score(y_test_orig, y_pred_orig)
 
-    # Save model + preprocessor
+    # Save model, preprocessor, and target scaler params
     model_name = f"{record['filename'].rsplit('.',1)[0]}_pytorch_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.pt"
     model_path = MODELS_DIR / model_name
     torch.save({
         "model_state_dict": model.state_dict(),
         "input_dim": input_dim,
         "architecture": "Linear(64)→ReLU→Linear(32)→ReLU→Linear(1)",
+        "y_mean": y_mean,
+        "y_std": y_std,
     }, model_path)
 
     # Save preprocessor
@@ -308,6 +321,8 @@ def train_pytorch(dataset_id: int, test_size: float = 0.2, random_state: int = 4
         "lr": lr,
         "train_rows": len(X_train),
         "test_rows": len(y_test),
+        "y_mean": y_mean,
+        "y_std": y_std,
     }
     with open(feature_info_path, "w", encoding="utf-8") as f:
         json.dump(feature_info, f, ensure_ascii=False, indent=2)

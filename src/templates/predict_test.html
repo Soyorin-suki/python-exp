@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% from 'macros/_ui.html' import alert, page_actions %}
+{% from 'macros/_tables.html' import kv_table %}
 
 {% block title %}预测测试 · 房价预测系统{% endblock %}
 
@@ -8,7 +9,7 @@
 <section class="card">
     <div class="section-head">
         <h1>随机数据预测测试</h1>
-        <p>选择已训练模型和数值特征，生成随机测试点并绘制预测曲线。</p>
+        <p>选择已训练模型，生成随机测试点并绘制预测曲线，或从清洗数据中随机抽查一行对比真值与预测值。</p>
     </div>
 
     {% if msg %}
@@ -44,7 +45,10 @@
         </div>
         {% endif %}
 
-        <button class="btn btn-primary" type="submit">生成预测测试图</button>
+        <div class="form-actions">
+            <button class="btn btn-primary" type="submit" name="action" value="plot">生成预测测试图</button>
+            <button class="btn btn-ghost" type="submit" name="action" value="spot_check">🎲 随机抽查一行</button>
+        </div>
     </form>
 </section>
 
@@ -54,8 +58,36 @@
         <h2>预测测试结果</h2>
     </div>
     <p class="muted"><strong>模型：</strong>{{ model_name }} ({{ model_type }}) &nbsp;|&nbsp; <strong>测试特征：</strong>{{ feature_name }}</p>
-    <p class="legend-note">蓝色散点 = 原始训练数据 · 橙色曲线 = 模型预测线</p>
+    <p class="legend-note">🔵 蓝色散点 = 原始训练数据 · 🟠 橙色曲线 = 模型预测线（其他特征固定为均值/众数）</p>
     <img class="chart-image" src="data:image/png;base64,{{ chart_b64 }}" alt="预测测试图">
+</section>
+{% endif %}
+
+{% if spot_result %}
+<section class="card">
+    <div class="section-head">
+        <h2>随机抽查结果</h2>
+        <p class="muted">从清洗数据中随机抽取一行，对比模型预测值与真实值。</p>
+    </div>
+
+    <table class="kv-table">
+        <tr><td>模型</td><td>{{ model_name }} ({{ model_type }})</td></tr>
+        <tr><td>真实值</td><td>₹ {{ "%.2f" | format(spot_result.true_value) }}</td></tr>
+        <tr><td>预测值</td><td>₹ {{ "%.2f" | format(spot_result.predicted_value) }}</td></tr>
+        <tr><td>误差</td><td>₹ {{ "%.2f" | format(spot_result.error) }}</td></tr>
+        {% if spot_result.error_pct is not none %}
+        <tr><td>误差百分比</td><td>{{ "%.2f" | format(spot_result.error_pct) }}%</td></tr>
+        {% endif %}
+    </table>
+
+    <details style="margin-top:1em;">
+        <summary>查看该行的特征值</summary>
+        <table class="kv-table" style="margin-top:0.5em;">
+            {% for feat, val in spot_result.feature_values.items() %}
+            <tr><td>{{ feat }}</td><td>{{ val }}</td></tr>
+            {% endfor %}
+        </table>
+    </details>
 </section>
 {% endif %}
 

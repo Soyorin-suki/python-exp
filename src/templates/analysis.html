@@ -46,7 +46,39 @@
             <tr><td>测试集行数</td><td>{{ selected_model.metadata.test_rows }}</td></tr>
         </table>
     </div>
+    <form method="post" action="?step=select" style="margin-top:1em;">
+        <input type="hidden" name="model_id" value="{{ selected_model.id }}">
+        <input type="hidden" name="action" value="spot_check">
+        <button class="btn btn-ghost" type="submit">🎲 随机抽查一行</button>
+    </form>
 </section>
+
+{% if spot_result %}
+<section class="card">
+    <div class="section-head">
+        <h2>抽查结果</h2>
+        <p class="muted">从清洗数据中随机抽取一行，对比模型预测值与真实值。</p>
+    </div>
+    <div class="table-wrap">
+        <table class="data-table">
+            <tr><td>真实值</td><td>₹ {{ "%.2f" | format(spot_result.true_value) }}</td></tr>
+            <tr><td>预测值</td><td>₹ {{ "%.2f" | format(spot_result.predicted_value) }}</td></tr>
+            <tr><td>误差</td><td>₹ {{ "%.2f" | format(spot_result.error) }}</td></tr>
+            {% if spot_result.error_pct is not none %}
+            <tr><td>误差百分比</td><td>{{ "%.2f" | format(spot_result.error_pct) }}%</td></tr>
+            {% endif %}
+        </table>
+    </div>
+    <details style="margin-top:1em;">
+        <summary>查看该行的特征值</summary>
+        <table class="data-table" style="margin-top:0.5em;">
+            {% for feat, val in spot_result.feature_values.items() %}
+            <tr><td>{{ feat }}</td><td>{{ val }}</td></tr>
+            {% endfor %}
+        </table>
+    </details>
+</section>
+{% endif %}
 
 <section class="card">
     <div class="section-head">

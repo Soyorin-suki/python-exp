@@ -110,5 +110,9 @@ def _predict_pytorch(model_record: dict, df: pd.DataFrame) -> float:
 
     X_t = torch.tensor(X, dtype=torch.float32)
     with torch.no_grad():
-        pred = model(X_t).item()
-    return float(pred)
+        pred_scaled = model(X_t).item()
+
+    # Inverse standardization: the model was trained on (y - mean)/std
+    y_mean = checkpoint.get("y_mean", 0.0)
+    y_std = checkpoint.get("y_std", 1.0)
+    return float(pred_scaled * y_std + y_mean)
