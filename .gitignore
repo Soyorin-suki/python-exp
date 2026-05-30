@@ -8,3 +8,13 @@ wheels/
 
 # Virtual environments
 .venv
+
+# ai
+CLAUDE.md
+instruction.md
+replay.md
+.claude
+
+# data
+data
+kaggle
