@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% from 'macros/_ui.html' import page_actions %}
+
+{% block title %}导出数据 · 房价预测系统{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="section-head">
+        <h1>导出数据与模型</h1>
+        <p>下载数据集文件（原始/清洗后）和已训练的模型文件。</p>
+    </div>
+</section>
+
+<!-- Raw Datasets -->
+<section class="card">
+    <div class="section-head">
+        <h2>原始数据集</h2>
+        <p class="muted">上传后未经处理的原始文件。</p>
+    </div>
+    {% if raw_datasets %}
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>文件名</th><th>类型</th><th>操作</th></tr></thead>
+            {% for ds in raw_datasets %}
+            <tr>
+                <td>{{ ds.filename }}</td>
+                <td>{{ ds.metadata.file_type | upper }}</td>
+                <td><a class="btn btn-sm btn-primary" href="/export/download/dataset/{{ ds.id }}">下载</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% else %}
+    <p class="muted">暂无原始数据集。</p>
+    {% endif %}
+</section>
+
+<!-- Cleaned Datasets -->
+<section class="card">
+    <div class="section-head">
+        <h2>已清洗数据集</h2>
+        <p class="muted">经过缺失值填充、异常值处理、标准化后的文件。</p>
+    </div>
+    {% if cleaned_datasets %}
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>文件名</th><th>清洗类型</th><th>行数</th><th>操作</th></tr></thead>
+            {% for ds in cleaned_datasets %}
+            <tr>
+                <td>{{ ds.filename }}</td>
+                <td>{{ ds.metadata.clean_type or '—' }}</td>
+                <td>{{ ds.metadata.row_count or '—' }}</td>
+                <td><a class="btn btn-sm btn-primary" href="/export/download/dataset/{{ ds.id }}">下载</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% else %}
+    <p class="muted">暂无已清洗数据集。</p>
+    {% endif %}
+</section>
+
+<!-- Models -->
+<section class="card">
+    <div class="section-head">
+        <h2>已训练模型</h2>
+        <p class="muted">下载模型文件、特征信息或一键打包。</p>
+    </div>
+    {% if models %}
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>模型名称</th><th>类型</th><th>R²</th><th>操作</th></tr></thead>
+            {% for m in models %}
+            <tr>
+                <td>{{ m.model_name }}</td>
+                <td>{{ m.metadata.model_type }}</td>
+                <td>{{ "%.4f" | format(m.metadata.r2) if m.metadata.r2 else '—' }}</td>
+                <td class="btn-group-sm">
+                    <a class="btn btn-sm btn-primary" href="/export/download/model/{{ m.id }}">模型</a>
+                    {% if m.has_features_json %}
+                    <a class="btn btn-sm btn-ghost" href="/export/download/model/{{ m.id }}/features">特征</a>
+                    {% endif %}
+                    {% if m.has_preprocessor %}
+                    <a class="btn btn-sm btn-ghost" href="/export/download/model/{{ m.id }}/preprocessor">预处理器</a>
+                    {% endif %}
+                    <a class="btn btn-sm btn-ghost" href="/export/download/model/{{ m.id }}/bundle">打包下载</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% else %}
+    <p class="muted">暂无已训练模型。</p>
+    {% endif %}
+</section>
+
+<section class="card">
+    {{ page_actions([
+        {'href': '/', 'label': '返回首页'}
+    ], split=true) }}
+</section>
+{% endblock %}
