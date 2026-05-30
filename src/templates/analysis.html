@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}房价预测 · 房价预测系统{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="section-head">
+        <h1>房价预测</h1>
+        <p>选择已训练模型，查看详情并输入特征进行预测。</p>
+    </div>
+
+    {% if msg %}
+    <div class="alert {{ 'alert-error' if color == 'red' else 'alert-success' }}">{{ msg }}</div>
+    {% endif %}
+
+    <form class="form-stack" method="post" action="?step=select">
+        <label class="field">
+            <span>选择模型</span>
+            <select name="model_id">
+                {% for m in models %}
+                <option value="{{ m.id }}" {% if selected_model and selected_model.id == m.id %}selected{% endif %}>
+                    {{ m.model_name }} ({{ m.metadata.model_type }})
+                </option>
+                {% endfor %}
+            </select>
+        </label>
+        <button class="btn btn-primary" type="submit">查看模型详情</button>
+    </form>
+</section>
+
+{% if selected_model %}
+<section class="card">
+    <div class="section-head">
+        <h2>模型详情</h2>
+    </div>
+    <div class="table-wrap">
+        <table class="data-table">
+            <tr><td>模型名称</td><td>{{ selected_model.model_name }}</td></tr>
+            <tr><td>模型类型</td><td>{{ selected_model.metadata.model_type }}</td></tr>
+            <tr><td>MSE</td><td>{{ "%.4f" | format(selected_model.metadata.mse) if selected_model.metadata.mse else 'N/A' }}</td></tr>
+            <tr><td>RMSE</td><td>{{ "%.4f" | format(selected_model.metadata.rmse) if selected_model.metadata.rmse else 'N/A' }}</td></tr>
+            <tr><td>R²</td><td>{{ "%.4f" | format(selected_model.metadata.r2) if selected_model.metadata.r2 else 'N/A' }}</td></tr>
+            <tr><td>训练集行数</td><td>{{ selected_model.metadata.train_rows }}</td></tr>
+            <tr><td>测试集行数</td><td>{{ selected_model.metadata.test_rows }}</td></tr>
+        </table>
+    </div>
+</section>
+
+<section class="card">
+    <div class="section-head">
+        <h2>输入特征值进行预测</h2>
+    </div>
+    <form class="form-stack" method="post" action="?step=predict">
+        <input type="hidden" name="model_id" value="{{ selected_model.id }}">
+        {% if numeric_features %}
+        <div class="form-grid">
+            {% for feat in numeric_features %}
+            <label class="field">
+                <span>{{ feat }}</span>
+                <input type="number" name="feat_{{ feat }}" step="any" required>
+            </label>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% if categorical_features %}
+        <div class="choice-stack">
+            {% for feat in categorical_features %}
+            <label class="field">
+                <span>{{ feat }}</span>
+                <select name="feat_{{ feat }}" required>
+                    <option value="">-- 请选择 --</option>
+                    {% for opt in category_options.get(feat, []) %}
+                    <option value="{{ opt }}">{{ opt }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <button class="btn btn-primary" type="submit">预测</button>
+    </form>
+</section>
+{% endif %}
+
+{% if prediction is not none %}
+<section class="card">
+    <div class="section-head">
+        <h2>预测结果</h2>
+    </div>
+    <p class="prediction-result">预测房价: ₹ {{ "%.2f" | format(prediction) }}</p>
+</section>
+{% endif %}
+
+<section class="card">
+    <div class="page-actions split">
+        <a class="btn btn-ghost" href="/predict-test">随机数据预测测试</a>
+        <a class="btn btn-ghost" href="/">返回首页</a>
+    </div>
+</section>
+{% endblock %}

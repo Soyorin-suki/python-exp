@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}数据上传 · 房价预测系统{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="section-head">
+        <h1>数据上传</h1>
+        <p>上传 CSV 或 XLSX 文件，系统会自动保存到原始数据目录。</p>
+    </div>
+
+    {% if msg %}
+    <div class="alert {{ 'alert-error' if color == 'red' else 'alert-success' }}">{{ msg }}</div>
+    {% endif %}
+
+    <form class="form-stack" method="post" enctype="multipart/form-data">
+        <label class="field">
+            <span>选择文件</span>
+            <input type="file" name="file" accept=".csv,.xlsx">
+        </label>
+        <p class="hint">支持 CSV 和 XLSX 格式，不允许重名文件。</p>
+        <button class="btn btn-primary" type="submit">上传文件</button>
+    </form>
+</section>
+
+<section class="card">
+    <div class="section-head">
+        <h2>已有数据集</h2>
+        <p>当前仓库中已经保存的数据文件。</p>
+    </div>
+    <ul class="list">
+        {% for ds in datasets %}
+        <li>{{ ds.filename }}</li>
+        {% else %}
+        <li class="muted">暂无数据集</li>
+        {% endfor %}
+    </ul>
+    <div class="page-actions">
+        <a class="btn btn-ghost" href="/">返回首页</a>
+    </div>
+</section>
+{% endblock %}

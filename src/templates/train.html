@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}模型训练 · 房价预测系统{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="section-head">
+        <h1>模型训练</h1>
+        <p>选择已清洗的数据集并训练 sklearn 或 PyTorch 模型。</p>
+    </div>
+
+    {% if msg %}
+    <div class="alert {{ 'alert-error' if color == 'red' else 'alert-success' }}">{{ msg }}</div>
+    {% endif %}
+
+    <form class="form-stack" method="post">
+        <label class="field">
+            <span>选择已清洗的数据集</span>
+            <select name="dataset_id">
+                {% for ds in cleaned_datasets %}
+                <option value="{{ ds.id }}">{{ ds.filename }}</option>
+                {% else %}
+                <option value="">暂无可训练数据</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label class="field">
+            <span>算法类型</span>
+            <select name="model_type">
+                <option value="sklearn">sklearn — LinearRegression</option>
+                <option value="pytorch">pytorch — 全连接神经网络</option>
+            </select>
+        </label>
+
+        <label class="field">
+            <span>测试集比例</span>
+            <input type="number" name="test_size" value="0.2" step="0.05" min="0.1" max="0.4">
+        </label>
+
+        <button class="btn btn-primary" type="submit">开始训练</button>
+    </form>
+</section>
+
+{% if result %}
+<section class="card">
+    <div class="section-head">
+        <h2>训练结果</h2>
+    </div>
+    <div class="table-wrap">
+        <table class="data-table">
+            <tr><td>模型名称</td><td>{{ result.model_name }}</td></tr>
+            <tr><td>MSE</td><td>{{ "%.4f" | format(result.mse) }}</td></tr>
+            <tr><td>RMSE</td><td>{{ "%.4f" | format(result.rmse) }}</td></tr>
+            <tr><td>R²</td><td>{{ "%.4f" | format(result.r2) }}</td></tr>
+            <tr><td>训练集行数</td><td>{{ result.train_rows }}</td></tr>
+            <tr><td>测试集行数</td><td>{{ result.test_rows }}</td></tr>
+            <tr><td>数值特征</td><td>{{ result.numeric_features | join(', ') }}</td></tr>
+            <tr><td>分类特征</td><td>{{ result.categorical_features | join(', ') }}</td></tr>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+<section class="card">
+    <div class="section-head">
+        <h2>已训练的模型</h2>
+    </div>
+    <ul class="list">
+        {% for m in models %}
+        <li>
+            <strong>{{ m.model_name }}</strong>
+            <span class="muted">— 类型: {{ m.metadata.model_type }} — MSE: {{ "%.2f" | format(m.metadata.mse) if m.metadata.mse else 'N/A' }} — R²: {{ "%.4f" | format(m.metadata.r2) if m.metadata.r2 else 'N/A' }}</span>
+        </li>
+        {% else %}
+        <li class="muted">暂无已训练模型</li>
+        {% endfor %}
+    </ul>
+</section>
+
+<section class="card">
+    <div class="page-actions">
+        <a class="btn btn-ghost" href="/">返回首页</a>
+    </div>
+</section>
+{% endblock %}

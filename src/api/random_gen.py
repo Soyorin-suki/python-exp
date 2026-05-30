@@ -1,42 +1,6 @@
-from flask import Blueprint, request, render_template_string
-
-from ..dao import RAW_DIR, ensure_data_dirs
-from ..dao.dataset_dao import DatasetDAO
-from ..services.dataset_service import save_dataset as _svc_save
+from flask import Blueprint, request, render_template
 
 bp = Blueprint("random_gen", __name__)
-
-GEN_FORM = """
-<h1>生成测试数据</h1>
-{% if msg %}
-<p style="color: {{ color }}">{{ msg }}</p>
-{% endif %}
-
-<h2>选择生成模式</h2>
-<form method="post">
-    <p>
-        <label><input type="radio" name="gen_type" value="linear" checked> 线性回归数据（y = a·x + b + noise）</label>
-    </p>
-    <p>
-        <label><input type="radio" name="gen_type" value="polynomial"> 多项式数据（y = a·x² + b·x + c + noise）</label>
-    </p>
-    <p>
-        <label><input type="radio" name="gen_type" value="normal"> 正态分布数据（特征来自正态分布）</label>
-    </p>
-    <p>
-        <label>样本数量：<input type="number" name="n_samples" value="500" min="100" max="10000"></label>
-    </p>
-    <p>
-        <label>噪声水平：<input type="number" name="noise" value="0.1" step="0.05" min="0" max="1"></label>
-    </p>
-    <p>
-        <label>文件名：<input type="text" name="filename" value="synthetic_data.csv" required></label>
-    </p>
-    <p><input type="submit" value="生成并保存"></p>
-</form>
-
-<p><a href="/">← 返回首页</a></p>
-"""
 
 
 @bp.route("/random-gen", methods=["GET", "POST"])
@@ -65,4 +29,4 @@ def random_gen_view():
             msg = f"生成失败: {e}"
             color = "red"
 
-    return render_template_string(GEN_FORM, msg=msg, color=color)
+    return render_template("random_gen.html", msg=msg, color=color)

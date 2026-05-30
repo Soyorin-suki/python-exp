@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}数据清洗 · 房价预测系统{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="section-head">
+        <h1>数据清洗</h1>
+        <p>选择原始数据集并执行缺失值、异常值和标准化处理。</p>
+    </div>
+
+    {% if msg %}
+    <div class="alert {{ 'alert-error' if color == 'red' else 'alert-success' }}">{{ msg }}</div>
+    {% endif %}
+
+    <form class="form-stack" method="post">
+        <label class="field">
+            <span>选择原始数据集</span>
+            <select name="dataset_id">
+                {% for ds in raw_datasets %}
+                <option value="{{ ds.id }}">{{ ds.filename }}</option>
+                {% else %}
+                <option value="">暂无可清洗数据</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <div class="check-list">
+            <label><input type="checkbox" name="fill_missing" value="1" checked> 缺失值填充（数值→中位数，分类→众数）</label>
+            <label><input type="checkbox" name="remove_outliers" value="1" checked> 异常值处理（IQR 方法）</label>
+            <label><input type="checkbox" name="normalize" value="1" checked> 数据标准化（StandardScaler）</label>
+        </div>
+
+        <button class="btn btn-primary" type="submit">开始清洗</button>
+    </form>
+</section>
+
+<section class="card">
+    <div class="section-head">
+        <h2>已清洗的数据集</h2>
+        <p>清洗完成后的文件会出现在这里。</p>
+    </div>
+    <ul class="list">
+        {% for ds in cleaned_datasets %}
+        <li>{{ ds.filename }} <span class="muted">— {{ ds.metadata.get('clean_type', '') }} ({{ ds.metadata.get('row_count', '?') }} 行)</span></li>
+        {% else %}
+        <li class="muted">暂无已清洗数据</li>
+        {% endfor %}
+    </ul>
+</section>
+
+{% if features %}
+<section class="card">
+    <div class="section-head">
+        <h2>数据集特征信息</h2>
+    </div>
+    <div class="info-grid">
+        <div><span>目标列</span><strong>{{ features.target }}</strong></div>
+        <div><span>数值特征</span><strong>{{ features.numeric_features | join(', ') }}</strong></div>
+        <div><span>分类特征</span><strong>{{ features.categorical_features | join(', ') }}</strong></div>
+    </div>
+</section>
+{% endif %}
+
+<section class="card">
+    <div class="page-actions">
+        <a class="btn btn-ghost" href="/">返回首页</a>
+    </div>
+</section>
+{% endblock %}

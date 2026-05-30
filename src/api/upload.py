@@ -1,28 +1,9 @@
-from flask import Blueprint, request, render_template_string
+from flask import Blueprint, request, render_template
 
-from ..services.dataset_service import save_dataset
 from ..dao.dataset_dao import DatasetDAO
+from ..services.dataset_service import save_dataset
 
 bp = Blueprint("upload", __name__)
-
-UPLOAD_FORM = """
-<h1>上传数据集</h1>
-{% if msg %}
-<p style="color: {{ color }}">{{ msg }}</p>
-{% endif %}
-<form method="post" enctype="multipart/form-data">
-    <p><input type="file" name="file" accept=".csv,.xlsx"></p>
-    <p>支持 CSV 和 XLSX 格式，不允许重名文件</p>
-    <p><input type="submit" value="上传"></p>
-</form>
-<p><a href="/">← 返回首页</a></p>
-<h2>已有数据集</h2>
-<ul>
-{% for ds in datasets %}
-    <li>{{ ds.filename }}</li>
-{% endfor %}
-</ul>
-"""
 
 
 @bp.route("/upload", methods=["GET", "POST"])
@@ -52,4 +33,4 @@ def upload_dataset():
 
     dao = DatasetDAO()
     datasets = dao.get_all()
-    return render_template_string(UPLOAD_FORM, msg=msg, color=color, datasets=datasets)
+    return render_template("upload.html", msg=msg, color=color, datasets=datasets)

@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}预测测试 · 房价预测系统{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="section-head">
+        <h1>随机数据预测测试</h1>
+        <p>选择已训练模型和数值特征，生成随机测试点并绘制预测曲线。</p>
+    </div>
+
+    {% if msg %}
+    <div class="alert {{ 'alert-error' if color == 'red' else 'alert-success' }}">{{ msg }}</div>
+    {% endif %}
+
+    <form class="form-stack" method="post">
+        <label class="field">
+            <span>模型</span>
+            <select name="model_id">
+                {% for m in models %}
+                <option value="{{ m.id }}" {% if model_id == m.id %}selected{% endif %}>
+                    {{ m.model_name }} ({{ m.metadata.model_type }})
+                </option>
+                {% endfor %}
+            </select>
+        </label>
+
+        {% if numeric_features %}
+        <div class="form-grid">
+            <label class="field">
+                <span>测试特征</span>
+                <select name="feature_name">
+                    {% for feat in numeric_features %}
+                    <option value="{{ feat }}" {% if feature_name == feat %}selected{% endif %}>{{ feat }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="field">
+                <span>测试点数</span>
+                <input type="number" name="n_points" value="80" min="20" max="500">
+            </label>
+        </div>
+        {% endif %}
+
+        <button class="btn btn-primary" type="submit">生成预测测试图</button>
+    </form>
+</section>
+
+{% if chart_b64 %}
+<section class="card">
+    <div class="section-head">
+        <h2>预测测试结果</h2>
+    </div>
+    <p class="muted"><strong>模型：</strong>{{ model_name }} ({{ model_type }}) &nbsp;|&nbsp; <strong>测试特征：</strong>{{ feature_name }}</p>
+    <p class="legend-note">蓝色散点 = 原始训练数据 · 橙色曲线 = 模型预测线</p>
+    <img class="chart-image" src="data:image/png;base64,{{ chart_b64 }}" alt="预测测试图">
+</section>
+{% endif %}
+
+<section class="card">
+    <div class="page-actions split">
+        <a class="btn btn-ghost" href="/predict">返回房价预测</a>
+        <a class="btn btn-ghost" href="/">返回首页</a>
+    </div>
+</section>
+{% endblock %}

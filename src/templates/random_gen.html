@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}生成测试数据 · 房价预测系统{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="section-head">
+        <h1>生成测试数据</h1>
+        <p>可以生成线性、多项式或正态分布测试数据，用于快速验证流程。</p>
+    </div>
+
+    {% if msg %}
+    <div class="alert {{ 'alert-error' if color == 'red' else 'alert-success' }}">{{ msg }}</div>
+    {% endif %}
+
+    <form class="form-stack" method="post">
+        <div class="choice-grid">
+            <label class="choice-card">
+                <input type="radio" name="gen_type" value="linear" checked>
+                <span>线性回归</span>
+                <small>y = a·x + b + noise</small>
+            </label>
+            <label class="choice-card">
+                <input type="radio" name="gen_type" value="polynomial">
+                <span>多项式</span>
+                <small>y = a·x² + b·x + c + noise</small>
+            </label>
+            <label class="choice-card">
+                <input type="radio" name="gen_type" value="normal">
+                <span>正态分布</span>
+                <small>特征来自正态分布</small>
+            </label>
+        </div>
+
+        <div class="form-grid">
+            <label class="field">
+                <span>样本数量</span>
+                <input type="number" name="n_samples" value="500" min="100" max="10000">
+            </label>
+            <label class="field">
+                <span>噪声水平</span>
+                <input type="number" name="noise" value="0.1" step="0.05" min="0" max="1">
+            </label>
+            <label class="field field-wide">
+                <span>文件名</span>
+                <input type="text" name="filename" value="synthetic_data.csv" required>
+            </label>
+        </div>
+
+        <button class="btn btn-primary" type="submit">生成并保存</button>
+    </form>
+</section>
+
+<section class="card">
+    <div class="page-actions">
+        <a class="btn btn-ghost" href="/">返回首页</a>
+    </div>
+</section>
+{% endblock %}

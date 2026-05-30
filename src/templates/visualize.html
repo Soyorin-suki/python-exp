@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}数据可视化 · 房价预测系统{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="section-head">
+        <h1>数据可视化</h1>
+        <p>选择数据集和图表类型，服务端生成图表并嵌入页面。</p>
+    </div>
+
+    {% if msg %}
+    <div class="alert {{ 'alert-error' if color == 'red' else 'alert-success' }}">{{ msg }}</div>
+    {% endif %}
+
+    <form class="form-stack" method="post">
+        <label class="field">
+            <span>数据集</span>
+            <select name="dataset_id">
+                {% for ds in datasets %}
+                <option value="{{ ds.id }}">{{ ds.filename }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label class="field">
+            <span>图表类型</span>
+            <select name="chart_type" id="chart_type" onchange="toggleColumns()">
+                <option value="histogram">直方图</option>
+                <option value="scatter">散点图</option>
+                <option value="correlation">相关性热力图</option>
+            </select>
+        </label>
+
+        <div id="single_col_div">
+            <label class="field">
+                <span>数值列</span>
+                <select name="column">
+                    {% for col in numeric_cols %}
+                    <option value="{{ col }}">{{ col }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+
+        <div id="two_col_div" style="display:none">
+            <div class="form-grid">
+                <label class="field">
+                    <span>X 轴列</span>
+                    <select name="x_col">
+                        {% for col in numeric_cols %}
+                        <option value="{{ col }}">{{ col }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label class="field">
+                    <span>Y 轴列</span>
+                    <select name="y_col">
+                        {% for col in numeric_cols %}
+                        <option value="{{ col }}">{{ col }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" type="submit">生成图表</button>
+    </form>
+</section>
+
+{% if chart_b64 %}
+<section class="card">
+    <div class="section-head">
+        <h2>图表结果</h2>
+    </div>
+    <img class="chart-image" src="data:image/png;base64,{{ chart_b64 }}" alt="图表结果">
+</section>
+{% endif %}
+
+<section class="card">
+    <div class="page-actions">
+        <a class="btn btn-ghost" href="/">返回首页</a>
+    </div>
+</section>
+{% endblock %}
