@@ -49,7 +49,14 @@ PREDICT_FORM = """
     {% if categorical_features %}
     <h3>分类特征</h3>
     {% for feat in categorical_features %}
-    <p><label>{{ feat }}：<input type="text" name="feat_{{ feat }}" required></label></p>
+    <p><label>{{ feat }}：
+        <select name="feat_{{ feat }}" required>
+            <option value="">-- 请选择 --</option>
+            {% for opt in category_options.get(feat, []) %}
+            <option value="{{ opt }}">{{ opt }}</option>
+            {% endfor %}
+        </select>
+    </label></p>
     {% endfor %}
     {% endif %}
     <p><input type="submit" value="预测"></p>
@@ -61,7 +68,7 @@ PREDICT_FORM = """
 <p style="font-size: 1.5em; color: #2a7d2a;">预测房价: ₹ {{ "%.2f" | format(prediction) }}</p>
 {% endif %}
 
-<p><a href="/">← 返回首页</a></p>
+<p><a href="/predict-test">🔬 随机数据预测测试</a> | <a href="/">← 返回首页</a></p>
 """
 
 
@@ -72,6 +79,7 @@ def predict_view():
     selected_model = None
     numeric_features = []
     categorical_features = []
+    category_options = {}
     prediction = None
 
     mdl_dao = ModelDAO()
@@ -82,18 +90,21 @@ def predict_view():
     if request.method == "POST":
         model_id = request.form.get("model_id", type=int)
 
-        if step == "select" or (step == "predict" and not request.form.get("feat_")):
+        # Detect whether user submitted feature values (fields like "feat_xxx")
+        has_feature_input = any(k.startswith("feat_") for k in request.form)
+
+        if step == "select" or (step == "predict" and not has_feature_input):
             # User selected a model — show details + feature form
             if model_id:
                 try:
                     selected_model = get_model_detail(model_id)
-                    # Load feature info
                     feature_info_path = selected_model["metadata"].get("feature_info_path")
                     if feature_info_path:
                         with open(feature_info_path, "r", encoding="utf-8") as f:
                             fi = json.load(f)
                             numeric_features = fi.get("numeric_features", [])
                             categorical_features = fi.get("categorical_features", [])
+                            category_options = fi.get("category_values", {})
                     else:
                         numeric_features = selected_model["metadata"].get("numeric_features", [])
                         categorical_features = selected_model["metadata"].get("categorical_features", [])
@@ -112,6 +123,7 @@ def predict_view():
                             fi = json.load(f)
                             numeric_features = fi.get("numeric_features", [])
                             categorical_features = fi.get("categorical_features", [])
+                            category_options = fi.get("category_values", {})
 
                     # Collect feature values from form
                     feature_values = {}
@@ -135,5 +147,6 @@ def predict_view():
         selected_model=selected_model,
         numeric_features=numeric_features,
         categorical_features=categorical_features,
+        category_options=category_options,
         prediction=prediction,
     )

@@ -18,8 +18,11 @@ from ..dao.model_dao import ModelDAO
 TARGET_COLUMN = "Price (in rupees)"
 
 
-# Columns that are free-text and should never be used as categorical features
+# Free-text columns — never use as categorical features
 TEXT_COLUMNS = {"Title", "Description"}
+
+# Numeric columns that carry no predictive information
+MEANINGLESS_NUMERIC = {"Index"}
 
 # Drop categorical columns with more unique values than this threshold
 MAX_CATEGORY_UNIQUE = 500
@@ -36,9 +39,10 @@ def _build_preprocessor(df: pd.DataFrame) -> ColumnTransformer:
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     raw_categorical_cols = df.select_dtypes(include=["object"]).columns.tolist()
 
-    # Remove target from numeric if present
-    if TARGET_COLUMN in numeric_cols:
-        numeric_cols.remove(TARGET_COLUMN)
+    # Remove target and meaningless columns from numeric
+    for exclude in [TARGET_COLUMN, *MEANINGLESS_NUMERIC]:
+        if exclude in numeric_cols:
+            numeric_cols.remove(exclude)
 
     # Filter categorical columns
     categorical_cols = []
@@ -132,11 +136,22 @@ def train_sklearn(dataset_id: int, test_size: float = 0.2, random_state: int = 4
     with open(model_path, "wb") as f:
         pickle.dump(model, f)
 
+    # Collect unique values for each categorical column (for predict-page dropdowns)
+    category_values = {}
+    for col in categorical_cols:
+        vals = df[col].dropna().unique().tolist()
+        # Sort if all values are comparable, otherwise use natural order
+        try:
+            category_values[col] = sorted(vals, key=str)
+        except Exception:
+            category_values[col] = vals
+
     # Save feature info alongside model
     feature_info_path = MODELS_DIR / f"{model_name}.features.json"
     feature_info = {
         "numeric_features": numeric_cols,
         "categorical_features": categorical_cols,
+        "category_values": category_values,
         "target": TARGET_COLUMN,
         "test_size": test_size,
         "random_state": random_state,
@@ -272,10 +287,20 @@ def train_pytorch(dataset_id: int, test_size: float = 0.2, random_state: int = 4
     with open(preprocessor_path, "wb") as f:
         pickle.dump(preprocessor, f)
 
+    # Collect unique values for each categorical column (for predict-page dropdowns)
+    category_values = {}
+    for col in categorical_cols:
+        vals = df[col].dropna().unique().tolist()
+        try:
+            category_values[col] = sorted(vals, key=str)
+        except Exception:
+            category_values[col] = vals
+
     feature_info_path = MODELS_DIR / f"{model_name}.features.json"
     feature_info = {
         "numeric_features": numeric_cols,
         "categorical_features": categorical_cols,
+        "category_values": category_values,
         "target": TARGET_COLUMN,
         "test_size": test_size,
         "random_state": random_state,

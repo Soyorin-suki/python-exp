@@ -49,6 +49,23 @@ def generate_and_save(gen_type: str, n_samples: int, noise: float, filename: str
             "Price (in rupees)": y,
         })
 
+    elif gen_type == "normal":
+        # y = 2.0*x1 + 1.5*x2 - 0.8*x3 + ε
+        # All features drawn from different normal distributions
+        x1 = rng.normal(100, 20, n_samples)     # μ=100, σ=20
+        x2 = rng.normal(50, 10, n_samples)      # μ=50,  σ=10
+        x3 = rng.normal(0, 5, n_samples)        # μ=0,   σ=5
+        category = rng.choice(["X", "Y", "Z"], n_samples)
+        y = 2.0 * x1 + 1.5 * x2 - 0.8 * x3 + rng.normal(0, noise * 50, n_samples)
+
+        df = pd.DataFrame({
+            "feature_1": x1,
+            "feature_2": x2,
+            "feature_3": x3,
+            "category": category,
+            "Price (in rupees)": y,
+        })
+
     else:
         raise ValueError(f"不支持的生成类型: {gen_type}")
 

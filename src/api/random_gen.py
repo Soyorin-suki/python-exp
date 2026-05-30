@@ -21,6 +21,9 @@ GEN_FORM = """
         <label><input type="radio" name="gen_type" value="polynomial"> 多项式数据（y = a·x² + b·x + c + noise）</label>
     </p>
     <p>
+        <label><input type="radio" name="gen_type" value="normal"> 正态分布数据（特征来自正态分布）</label>
+    </p>
+    <p>
         <label>样本数量：<input type="number" name="n_samples" value="500" min="100" max="10000"></label>
     </p>
     <p>
