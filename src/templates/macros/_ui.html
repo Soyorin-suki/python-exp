@@ -1,0 +1,22 @@
+{% macro section_head(title, subtitle='') -%}
+<div class="section-head">
+    <h2>{{ title }}</h2>
+    {% if subtitle %}<p>{{ subtitle }}</p>{% endif %}
+</div>
+{%- endmacro %}
+
+{% macro alert(message, color='green') -%}
+<div class="alert {{ 'alert-error' if color == 'red' else 'alert-success' }}">{{ message }}</div>
+{%- endmacro %}
+
+{% macro page_actions(links, split=false) -%}
+<div class="page-actions{% if split %} split{% endif %}">
+    {% for link in links %}
+    <a class="btn btn-ghost" href="{{ link.href }}">{{ link.label }}</a>
+    {% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro empty_list(message='暂无数据') -%}
+<li class="muted">{{ message }}</li>
+{%- endmacro %}

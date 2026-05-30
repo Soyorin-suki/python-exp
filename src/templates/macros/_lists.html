@@ -1,0 +1,9 @@
+{% macro simple_list(items, empty_message='暂无数据') -%}
+<ul class="list">
+    {% for item in items %}
+    <li>{{ item }}</li>
+    {% else %}
+    <li class="muted">{{ empty_message }}</li>
+    {% endfor %}
+</ul>
+{%- endmacro %}

@@ -1,0 +1,17 @@
+{% macro field(label, name, type='text', value='', attrs='') -%}
+<label class="field">
+    <span>{{ label }}</span>
+    <input type="{{ type }}" name="{{ name }}" value="{{ value }}" {{ attrs }}>
+</label>
+{%- endmacro %}
+
+{% macro select(label, name, options, selected='', attrs='') -%}
+<label class="field">
+    <span>{{ label }}</span>
+    <select name="{{ name }}" {{ attrs }}>
+        {% for opt in options %}
+        <option value="{{ opt.value }}" {% if opt.value == selected %}selected{% endif %}>{{ opt.label }}</option>
+        {% endfor %}
+    </select>
+</label>
+{%- endmacro %}

@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
+{% from 'macros/_ui.html' import alert, page_actions %}
+
 {% block title %}房价预测 · 房价预测系统{% endblock %}
 
 {% block content %}
@@ -10,7 +12,7 @@
     </div>
 
     {% if msg %}
-    <div class="alert {{ 'alert-error' if color == 'red' else 'alert-success' }}">{{ msg }}</div>
+    {{ alert(msg, color) }}
     {% endif %}
 
     <form class="form-stack" method="post" action="?step=select">
@@ -92,9 +94,9 @@
 {% endif %}
 
 <section class="card">
-    <div class="page-actions split">
-        <a class="btn btn-ghost" href="/predict-test">随机数据预测测试</a>
-        <a class="btn btn-ghost" href="/">返回首页</a>
-    </div>
+    {{ page_actions([
+        {'href': '/predict-test', 'label': '随机数据预测测试'},
+        {'href': '/', 'label': '返回首页'}
+    ], split=true) }}
 </section>
 {% endblock %}

@@ -1,0 +1,9 @@
+{% macro key_value_table(rows) -%}
+<div class="table-wrap">
+    <table class="data-table">
+        {% for label, value in rows %}
+        <tr><td>{{ label }}</td><td>{{ value }}</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{%- endmacro %}

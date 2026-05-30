@@ -1,0 +1,7 @@
+{% macro flow_steps(steps) -%}
+<div class="flow">
+    {% for step in steps %}
+    <span>{{ step }}</span>
+    {% endfor %}
+</div>
+{%- endmacro %}

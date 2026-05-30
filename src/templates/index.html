@@ -1,108 +1,62 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="utf-8">
-    <title>房价预测系统</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 0 20px;
-            line-height: 1.6;
-        }
-        h1 { color: #333; }
-        .feature-list {
-            list-style: none;
-            padding: 0;
-        }
-        .feature-list li {
-            margin: 8px 0;
-        }
-        .feature-list a {
-            display: block;
-            padding: 12px 16px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            text-decoration: none;
-            color: #333;
-        }
-        .feature-list a:hover {
-            background: #f5f5f5;
-            border-color: #999;
-        }
-        .feature-list a .desc {
-            font-size: 0.85em;
-            color: #888;
-            display: block;
-        }
-        .flow {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-wrap: wrap;
-            margin: 20px 0;
-            font-size: 0.9em;
-            color: #666;
-        }
-        .flow span {
-            background: #eee;
-            padding: 4px 10px;
-            border-radius: 4px;
-        }
-    </style>
-</head>
-<body>
-    <h1>🏠 房价预测系统</h1>
-    <p>基于 Kaggle 开源数据集，使用 Flask + sklearn / PyTorch 构建的交互式房价预测系统。</p>
+{% extends 'base.html' %}
+{% from 'macros/_flows.html' import flow_steps %}
 
-    <div class="flow">
-        推荐流程: <span>1. 上传/生成</span> → <span>2. 清洗</span> → <span>3. 训练</span> → <span>4. 预测</span> → <span>5. 可视化</span>
+{% block title %}房价预测系统 · 首页{% endblock %}
+
+{% block content %}
+<section class="hero card">
+    <p class="eyebrow">Kaggle 房价预测项目</p>
+    <h1>把数据上传、清洗、训练、预测串成一条完整流程。</h1>
+    <p class="lead">基于 Flask + scikit-learn / PyTorch 构建，支持数据上传、测试数据生成、模型训练、预测和服务端图表展示。</p>
+
+    <div class="hero-actions">
+        <a class="btn btn-primary" href="/upload">开始上传</a>
+        <a class="btn btn-ghost" href="/predict">直接预测</a>
     </div>
+</section>
 
-    <ul class="feature-list">
-        <li>
-            <a href="/upload">
-                数据上传
-                <span class="desc">上传 CSV 或 XLSX 格式的数据集文件</span>
-            </a>
-        </li>
-        <li>
-            <a href="/random-gen">
-                生成测试数据
-                <span class="desc">生成带噪声的合成数据集，用于快速测试</span>
-            </a>
-        </li>
-        <li>
-            <a href="/clean">
-                数据清洗
-                <span class="desc">缺失值填充、异常值处理、数据标准化</span>
-            </a>
-        </li>
-        <li>
-            <a href="/train">
-                模型训练
-                <span class="desc">选择 sklearn (LinearRegression) 或 PyTorch (全连接神经网络) 进行训练</span>
-            </a>
-        </li>
-        <li>
-            <a href="/predict">
-                房价预测
-                <span class="desc">选择已训练模型，输入特征值，获取预测结果</span>
-            </a>
-        </li>
-        <li>
-            <a href="/predict-test">
-                预测测试
-                <span class="desc">随机数据预测可视化 — 原始数据散点 + 模型预测曲线</span>
-            </a>
-        </li>
-        <li>
-            <a href="/visualize">
-                数据可视化
-                <span class="desc">直方图、散点图、相关性热力图</span>
-            </a>
-        </li>
-    </ul>
-</body>
-</html>
+<section class="card">
+    <div class="section-head">
+        <h2>推荐流程</h2>
+        <p>按这个顺序使用，最容易跑通整个项目。</p>
+    </div>
+    {{ flow_steps([
+        '1. 上传/生成',
+        '2. 清洗',
+        '3. 训练',
+        '4. 预测',
+        '5. 可视化'
+    ]) }}
+</section>
+
+<section class="grid-actions">
+    <a class="feature-card" href="/upload">
+        <h3>数据上传</h3>
+        <p>上传 CSV 或 XLSX 格式的数据集。</p>
+    </a>
+    <a class="feature-card" href="/random-gen">
+        <h3>生成测试数据</h3>
+        <p>一键生成带噪声的合成数据集。</p>
+    </a>
+    <a class="feature-card" href="/clean">
+        <h3>数据清洗</h3>
+        <p>缺失值、异常值和标准化处理。</p>
+    </a>
+    <a class="feature-card" href="/train">
+        <h3>模型训练</h3>
+        <p>支持 sklearn 和 PyTorch 两种训练方式。</p>
+    </a>
+    <a class="feature-card" href="/predict">
+        <h3>房价预测</h3>
+        <p>选择已训练模型并输入特征做预测。</p>
+    </a>
+    <a class="feature-card" href="/predict-test">
+        <h3>预测测试</h3>
+        <p>随机测试点 + 模型预测曲线可视化。</p>
+    </a>
+    <a class="feature-card" href="/visualize">
+        <h3>数据可视化</h3>
+        <p>直方图、散点图、相关性热力图。</p>
+    </a>
+</section>
+{% endblock %}
